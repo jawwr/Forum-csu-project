@@ -1,8 +1,8 @@
 version: '3.9'
 
 networks:
-  app_network:
-    name: forum_network
+  forum_network:
+    driver: bridge
 
 services:
   app-db:
@@ -32,7 +32,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENER: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -42,10 +42,11 @@ services:
       - zookeeper
     networks:
       - forum_network
+    restart: on-failure
 
   event-service:
     build:
-      context: /event-service
+      context: ./event-service
       dockerfile: Dockerfile
     container_name: forum-event-service
     ports:
@@ -60,7 +61,7 @@ services:
 
   post-service:
     build:
-      context: /post-service
+      context: ./post-service
       dockerfile: Dockerfile
     container_name: forum-post-service
     ports:
@@ -75,7 +76,7 @@ services:
 
   user-service:
     build:
-      context: /user-service
+      context: ./user-service
       dockerfile: Dockerfile
     container_name: forum-user-service
     ports:
