@@ -1,6 +1,6 @@
 syntax = "proto3";
 package userService;
-option go_package = "../internal/grpc";
+option go_package = "userService";
 
 message User {
     int32 id = 1;
