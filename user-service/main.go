@@ -5,14 +5,13 @@ import (
 	"log"
 	http2 "net/http"
 	"time"
+	"user-service/internal/core/repository"
 	"user-service/internal/core/service"
 	"user-service/internal/lib/db"
-	"user-service/internal/repository"
-	"user-service/internal/transport/http"
+	"user-service/internal/transport/router"
 )
 
 func main() {
-
 	timeout := time.Second * 10
 
 	ctx := context.Background()
@@ -21,13 +20,12 @@ func main() {
 
 	database := db.New(withTimeout)
 
-	manager := repository.NewRepositoryManager(database)
+	repositoryManager := repository.NewManager(database)
+	serviceManager := service.NewManager(repositoryManager)
 
-	serv := service.NewAuthService(manager.UserRepository)
+	routes := router.InitRoutes(serviceManager)
 
-	router := http.InitRoutes(serv)
-
-	if err := http2.ListenAndServe(":8080", router); err != nil {
+	if err := http2.ListenAndServe(":8080", routes); err != nil {
 		log.Fatal(err)
 	}
 }

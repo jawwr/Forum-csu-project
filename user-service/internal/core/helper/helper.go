@@ -1,9 +1,9 @@
-package model
+package helper
 
 import "time"
 
 const (
 	Salt      = "fdfsas12dfdsdv4"
 	SignInKey = "kjngjksdngn"
-	TokenTTL  = 12 * time.Hour
+	TokenTTL  = 8 * time.Hour
 )
