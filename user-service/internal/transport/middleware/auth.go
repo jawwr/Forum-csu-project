@@ -1,58 +1,39 @@
 package middleware
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
-	"log/slog"
+	"log"
 	"net/http"
-	"strings"
-	"user-service/internal/core/model"
-	"user-service/internal/core/service"
+	"time"
+	"user-service/internal/core/interface/service"
 )
 
-func AuthMiddleware(c *gin.Context) {
-	auth := c.GetHeader("Authorization")
+func AuthMiddleware(tokenService service.TokenService, userService service.UserService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		auth := c.GetHeader("Authorization")
 
-	if auth == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid")
-		return
+		if auth == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Missing authorization"})
+			return
+		}
+
+		token, err := tokenService.GetToken(c, auth[len("Bearer "):])
+		if err != nil || token.Revoked || token.Expire.Before(time.Now()) {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid token"})
+			return
+		}
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "Invalid token"})
+			return
+		}
+
+		user, err := userService.GetUserById(c, token.UserId)
+		if err != nil {
+			log.Fatal("Error during getting user")
+		}
+
+		c.Set("user", user.Login)
+
+		c.Next()
 	}
-
-	splitToken := strings.Split(auth, " ")
-
-	login, err := parseToken(splitToken[1])
-
-	if err != nil {
-		slog.Error(err.Error())
-		c.AbortWithStatusJSON(http.StatusUnauthorized, "invalid token")
-	}
-
-	c.Set("user", login)
-
-	c.Next()
-}
-
-func parseToken(token string) (string, error) {
-	// at - access token
-	at, err := jwt.ParseWithClaims(token, &service.TokenClaims{},
-		func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("invalid method")
-			}
-
-			return []byte(model.SignInKey), nil
-		})
-
-	if err != nil {
-		return "", err
-	}
-
-	claims, ok := at.Claims.(*service.TokenClaims)
-
-	if !ok {
-		return "", err
-	}
-
-	return claims.Login, nil
 }

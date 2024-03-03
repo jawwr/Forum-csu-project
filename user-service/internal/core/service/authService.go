@@ -5,62 +5,59 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt"
 	"log/slog"
-	"time"
+	"user-service/internal/core/helper"
 	"user-service/internal/core/interface/repository"
 	"user-service/internal/core/interface/service"
-	"user-service/internal/core/model"
+	"user-service/internal/transport/model"
 )
 
-type TokenClaims struct {
-	jwt.StandardClaims
-	Login string `json:"login"`
-}
-
 type _authService struct {
-	repo repository.UserRepository
+	repo         repository.UserRepository
+	tokenService service.TokenService
 }
 
-func NewAuthService(repo repository.UserRepository) service.AuthService {
-	return _authService{repo: repo}
+func NewAuthService(repo repository.UserRepository, tokenService service.TokenService) service.AuthService {
+	return _authService{
+		repo:         repo,
+		tokenService: tokenService,
+	}
 }
 
-func (service _authService) Register(ctx context.Context, login,
-	password string) (string, error) {
+func (service _authService) Register(ctx context.Context, user model.UserCredentials) (string, error) {
+	user.Password = generateHashPassword(user.Password)
 
-	hash := generatePassword(password)
-
-	userName, err := service.repo.CreateUser(ctx, login, hash)
+	savedUser, err := service.repo.CreateUser(ctx, user)
 
 	if err != nil {
 		slog.Error(err.Error())
 		return "", errors.New("не смогли создать пользователя")
 	}
 
-	return generateToken(userName)
+	token, err := service.tokenService.GenerateToken(ctx, *savedUser)
+	if err != nil {
+		return "", err
+	}
 
+	return token, nil
 }
 
-func (service _authService) Login(ctx context.Context, login,
-	password string) (string, error) {
-	return "", nil
+func (service _authService) Login(ctx context.Context, user model.UserCredentials) (string, error) {
+	user.Password = generateHashPassword(user.Password)
+	savedUser, err := service.repo.GetUserByCredentials(ctx, user)
+	if err != nil {
+		return "", err
+	}
+	token, err := service.tokenService.GenerateToken(ctx, *savedUser)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
-func generatePassword(password string) string {
+func generateHashPassword(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(model.Salt)))
-}
-
-func generateToken(login string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &TokenClaims{
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(model.TokenTTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
-		},
-		Login: login,
-	})
-	return token.SignedString([]byte(model.SignInKey))
+	return fmt.Sprintf("%x", hash.Sum([]byte(helper.Salt)))
 }

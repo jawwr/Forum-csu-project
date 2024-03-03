@@ -1,0 +1,16 @@
+syntax = "proto3";
+package userService;
+option go_package = "userService";
+
+message User {
+    int32 id = 1;
+    string login = 2;
+}
+
+message Token {
+    string token = 1;
+}
+
+service UserService {
+    rpc GetUserByToken(Token) returns(User);
+}
