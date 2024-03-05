@@ -88,3 +88,18 @@ services:
     networks:
       - forum_network
     restart: on-failure
+
+  front-service:
+    build:
+      context: ./front-service
+      dockerfile: Dockerfile
+    container_name: front-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - event-service
+      - post-service
+      - user-service
+    networks:
+      - forum_network
+    restart: on-failure
