@@ -4,3 +4,9 @@
 .idea
 
 *.exe
+
+postgres-data
+
+event-service/event-service
+post-service/post-service
+user-service/user-service

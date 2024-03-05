@@ -1,0 +1,90 @@
+version: '3.9'
+
+networks:
+  forum_network:
+    driver: bridge
+
+services:
+  app-db:
+    image: postgres
+    container_name: forum-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+    restart: on-failure
+    networks:
+      - forum_network
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - forum_network
+    ports:
+      - "22181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    networks:
+      - forum_network
+    restart: on-failure
+
+  event-service:
+    build:
+      context: ./event-service
+      dockerfile: Dockerfile
+    container_name: forum-event-service
+    ports:
+      - "8081:8080"
+    links:
+      - app-db
+    depends_on:
+      - app-db
+    networks:
+      - forum_network
+    restart: on-failure
+
+  post-service:
+    build:
+      context: ./post-service
+      dockerfile: Dockerfile
+    container_name: forum-post-service
+    ports:
+      - "8082:8080"
+    links:
+      - app-db
+    depends_on:
+      - app-db
+    networks:
+      - forum_network
+    restart: on-failure
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: forum-user-service
+    ports:
+      - "8083:8080"
+    links:
+      - app-db
+    depends_on:
+      - app-db
+    networks:
+      - forum_network
+    restart: on-failure
