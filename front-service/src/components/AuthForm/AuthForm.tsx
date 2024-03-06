@@ -1,4 +1,5 @@
 import React from 'react';
+import {Link} from "react-router-dom";
 
 import {Input} from "../Input";
 import {Button} from "../Button";
@@ -13,6 +14,12 @@ export const AuthForm = () => {
       <Button>
         Войти
       </Button>
+      <span>
+        {'Нет аккаунта? ну не знаю иди поплачься '}
+        <Link to="/register">
+          кому-нибудь
+        </Link>
+      </span>
     </SC.Wrapper>
   );
 };
