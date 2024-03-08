@@ -5,7 +5,7 @@ import (
 	"user-service/internal/core/interface/service"
 	"user-service/internal/core/mapper"
 	serviceManager "user-service/internal/core/service"
-	pb "user-service/proto"
+	pb "user-service/proto/generated/userService"
 )
 
 type _userServiceGrpc struct {

@@ -3,7 +3,7 @@ package mapper
 import (
 	modelDb "user-service/internal/core/repository/model"
 	modelDto "user-service/internal/transport/model"
-	pb "user-service/proto"
+	pb "user-service/proto/generated/userService"
 )
 
 func FromUserDb(user *modelDb.User) *modelDto.UserResponse {

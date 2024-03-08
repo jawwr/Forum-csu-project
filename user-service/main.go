@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -14,7 +13,7 @@ import (
 	"user-service/internal/lib/db"
 	"user-service/internal/transport/router"
 
-	pb "user-service/proto"
+	pb "user-service/proto/generated/userService"
 )
 
 func main() {
@@ -39,7 +38,7 @@ func main() {
 }
 
 func startGrpc(manager service.Manager) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":9090"))
+	lis, err := net.Listen("tcp", ":9090")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
