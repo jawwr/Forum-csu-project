@@ -8,20 +8,20 @@ import (
 	pb "user-service/proto/generated/userService"
 )
 
-type _userServiceGrpc struct {
+type _userServiceImpl struct {
 	pb.UnimplementedUserServiceServer
 	userService  service.UserService
 	tokenService service.TokenService
 }
 
 func NewUserService(manager serviceManager.Manager) pb.UserServiceServer {
-	return _userServiceGrpc{
+	return _userServiceImpl{
 		userService:  manager.UserService,
 		tokenService: manager.TokenService,
 	}
 }
 
-func (s _userServiceGrpc) GetUserByToken(ctx context.Context, token *pb.Token) (*pb.User, error) {
+func (s _userServiceImpl) GetUserByToken(ctx context.Context, token *pb.Token) (*pb.User, error) {
 	savedToken, err := s.tokenService.GetToken(ctx, token.Token)
 	if err != nil {
 		return nil, err

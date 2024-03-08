@@ -7,13 +7,14 @@ import (
 	"net"
 	http2 "net/http"
 	"time"
-	grpc2 "user-service/internal/core/grpc"
+	grpcServiceImpl "user-service/internal/core/grpc"
 	"user-service/internal/core/repository"
 	"user-service/internal/core/service"
 	"user-service/internal/lib/db"
 	"user-service/internal/transport/router"
 
-	pb "user-service/proto/generated/userService"
+	pbSubscriberService "user-service/proto/generated/subscriberService"
+	pbUserService "user-service/proto/generated/userService"
 )
 
 func main() {
@@ -43,8 +44,9 @@ func startGrpc(manager service.Manager) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	server := grpc.NewServer()
-	pb.RegisterUserServiceServer(server, grpc2.NewUserService(manager))
-	log.Printf("server listening at %v", lis.Addr())
+	pbUserService.RegisterUserServiceServer(server, grpcServiceImpl.NewUserService(manager))
+	pbSubscriberService.RegisterSubscriberServiceServer(server, grpcServiceImpl.NewSubscriberService(manager))
+	log.Printf("grpc server started at %v", lis.Addr())
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
