@@ -2,17 +2,19 @@ import React from 'react';
 
 import {Post} from "../Post";
 
+import {PostModel} from "types/entities";
+
 import * as SC from './style';
 
-const POSTS = [
-  '1', '2', '3'
-]
+export interface PostListProps {
+  posts: PostModel[];
+}
 
-export const PostList = () => {
+export const PostList = ({posts}: PostListProps) => {
   return (
     <SC.Wrapper>
-      {POSTS.map(p => (
-        <Post key={p} data={p} />
+      {posts.map(p => (
+        <Post key={p.id} data={p} />
       ))}
     </SC.Wrapper>
   );
