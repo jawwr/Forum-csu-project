@@ -32,7 +32,7 @@ func AuthMiddleware(tokenService service.TokenService, userService service.UserS
 			log.Fatal("Error during getting user")
 		}
 
-		c.Set("user", user.Login)
+		c.Set("user", user)
 
 		c.Next()
 	}

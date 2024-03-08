@@ -9,11 +9,13 @@ import (
 type Manager struct {
 	repository.UserRepository
 	repository.TokenRepository
+	repository.SubscriberRepository
 }
 
 func NewManager(db *db.Db) Manager {
 	return Manager{
 		postgres.NewUserRepository(db),
 		postgres.NewTokenRepository(db),
+		postgres.NewSubscriberRepository(db),
 	}
 }
