@@ -9,13 +9,15 @@ type Manager struct {
 	service.UserService
 	service.TokenService
 	service.AuthService
+	service.SubscriberService
 }
 
 func NewManager(manager repository.Manager) Manager {
 	tokenService := NewTokenService(manager.TokenRepository)
 	return Manager{
-		UserService:  NewUserService(manager.UserRepository),
-		TokenService: tokenService,
-		AuthService:  NewAuthService(manager.UserRepository, tokenService),
+		UserService:       NewUserService(manager.UserRepository),
+		TokenService:      tokenService,
+		AuthService:       NewAuthService(manager.UserRepository, tokenService),
+		SubscriberService: NewSubscriberService(manager.SubscriberRepository),
 	}
 }

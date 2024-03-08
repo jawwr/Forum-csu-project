@@ -67,3 +67,23 @@ func (repo _userRepo) CreateUser(ctx context.Context, userDto model.UserCredenti
 
 	return &user, nil
 }
+
+func (repo _userRepo) GetAllUsers(ctx context.Context) ([]*dbModel.User, error) {
+	var users []*dbModel.User
+	rows, err := repo.PgConn.Query(
+		ctx,
+		`SELECT id, login, password 
+			 FROM users`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var user dbModel.User
+		if err := rows.Scan(&user.Id, &user.Login, &user.Password); err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+	return users, nil
+}
