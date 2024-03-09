@@ -7,10 +7,15 @@ message User {
     string login = 2;
 }
 
+message UserRequest {
+    int32 id = 1;
+}
+
 message Token {
     string token = 1;
 }
 
 service UserService {
-    rpc GetUserByToken(Token) returns(User);
+    rpc GetUserByToken(Token) returns (User);
+    rpc GetUserById(stream UserRequest) returns (stream User);
 }
