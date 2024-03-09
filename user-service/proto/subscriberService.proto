@@ -1,0 +1,16 @@
+syntax = "proto3";
+package subscriberService;
+option go_package = "user-service/subscriberService";
+
+message SubscriberResponse {
+    int32 id = 1;
+    string login = 2;
+}
+
+message UserRequest {
+    int32 id = 1;
+}
+
+service SubscriberService {
+    rpc GetAllUserSubscribers(UserRequest) returns (stream SubscriberResponse); 
+}

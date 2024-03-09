@@ -24,6 +24,19 @@ func (service _userService) GetUserById(ctx context.Context, id int) (*model.Use
 	return mapper.FromUserDb(savedUser), nil
 }
 
+func (service _userService) GetAllUsers(ctx context.Context) ([]model.UserResponse, error) {
+	savedUsers, err := service.repository.GetAllUsers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	users := make([]model.UserResponse, 0)
+	for _, user := range savedUsers {
+		dto := mapper.FromUserDb(user)
+		users = append(users, *dto)
+	}
+	return users, nil
+}
+
 func (service _userService) CreateUser(ctx context.Context, user *model.UserCredentials) error {
 	_, err := service.repository.CreateUser(ctx, *user)
 	if err != nil {
