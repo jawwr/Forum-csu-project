@@ -22,8 +22,8 @@ func (postRepository _postRepository) CreatePost(ctx context.Context, post model
 	var id int
 
 	err := postRepository.db.PgConn.QueryRow(ctx,
-		`INSERT INTO public.post(id, text, user_id) values ($1,$2,$3) RETURNING id`,
-		postDb.Id,
+		`INSERT INTO public.post(title, text, user_id) values ($1,$2,$3) RETURNING id`,
+		postDb.Title,
 		postDb.Text,
 		postDb.UserId).Scan(&id)
 
@@ -34,8 +34,8 @@ func (postRepository _postRepository) GetPost(ctx context.Context, postId int) (
 	var post dbModel.Post
 
 	err := postRepository.db.PgConn.QueryRow(ctx,
-		`SELECT p.id, p.text, p.user_id FROM public.post p WHERE p.id=$1`,
-		postId).Scan(&post.Id, &post.Text, &post.UserId)
+		`SELECT p.id, p.title, p.text, p.user_id FROM public.post p WHERE p.id=$1`,
+		postId).Scan(&post.Id, &post.Title, &post.Text, &post.UserId)
 
 	if err != nil {
 		return model.Post{}, fmt.Errorf("get post error: %s", err.Error())
@@ -46,7 +46,7 @@ func (postRepository _postRepository) GetPost(ctx context.Context, postId int) (
 
 func (postRepository _postRepository) GetAllPosts(ctx context.Context) ([]model.Post, error) {
 	rows, err := postRepository.db.PgConn.Query(ctx,
-		`SELECT p.id, p.text, p.user_id FROM public.post`)
+		`SELECT p.id, p.title, p.text, p.user_id FROM public.post p`)
 
 	if err != nil {
 		return []model.Post{}, fmt.Errorf("get all posts get error: %s", err.Error())
@@ -58,7 +58,7 @@ func (postRepository _postRepository) GetAllPosts(ctx context.Context) ([]model.
 
 	for rows.Next() {
 		var post dbModel.Post
-		if err := rows.Scan(&post.Id, &post.Text, &post.UserId); err != nil {
+		if err := rows.Scan(&post.Id, &post.Title, &post.Text, &post.UserId); err != nil {
 			return []model.Post{}, fmt.Errorf("all posts get error: %s", err.Error())
 		}
 		posts = append(posts, post)
@@ -73,6 +73,7 @@ func (postRepository _postRepository) GetAllPosts(ctx context.Context) ([]model.
 	for _, post := range posts {
 		result = append(result, model.Post{
 			Id:     post.Id,
+			Title:  post.Title,
 			Text:   post.Text,
 			UserId: post.UserId,
 		})

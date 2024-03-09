@@ -9,14 +9,20 @@ import (
 )
 
 type handlerPost struct {
-	Id     int    `json:"id"`
-	Text   string `json:"text"`
-	UserId int    `json:"user_id"`
+	Id    int        `json:"id"`
+	Title string     `json:"title"`
+	Text  string     `json:"text"`
+	User  handleUser `json:"user"`
+}
+
+type handleUser struct {
+	Id    int    `json:"id"`
+	Login string `json:"login"`
 }
 
 func CreatePost(service service.PostService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var post handlerPost
+		var post model.Post
 
 		if err := c.BindJSON(&post); err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest,
@@ -24,8 +30,16 @@ func CreatePost(service service.PostService) gin.HandlerFunc {
 
 			return
 		}
+		ctxUser, exist := c.Get("user")
+		if !exist {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "wrong user"})
+			return
+		}
 
-		id, err := service.CreatePost(c.Request.Context(), model.Post(post))
+		user := ctxUser.(model.User)
+		post.UserId = user.Id
+
+		id, err := service.CreatePost(c.Request.Context(), post)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
@@ -57,7 +71,15 @@ func GetPost(service service.PostService) gin.HandlerFunc {
 
 		}
 
-		c.JSON(http.StatusOK, handlerPost(post))
+		c.JSON(http.StatusOK, handlerPost{
+			Id:    post.Id,
+			Title: post.Title,
+			Text:  post.Text,
+			User: handleUser{
+				Id:    post.UserId,
+				Login: "",
+			},
+		})
 	}
 }
 
@@ -73,9 +95,13 @@ func GetAllPosts(service service.PostService) gin.HandlerFunc {
 		var result []handlerPost
 		for _, post := range posts {
 			result = append(result, handlerPost{
-				Id:     post.Id,
-				Text:   post.Text,
-				UserId: post.UserId,
+				Id:    post.Id,
+				Title: post.Title,
+				Text:  post.Text,
+				User: handleUser{
+					Id:    post.UserId,
+					Login: "",
+				},
 			})
 		}
 		c.JSON(http.StatusOK, result)

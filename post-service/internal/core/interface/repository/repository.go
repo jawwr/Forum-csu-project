@@ -10,3 +10,7 @@ type PostRepository interface {
 	GetPost(ctx context.Context, postId int) (model.Post, error)
 	GetAllPosts(ctx context.Context) ([]model.Post, error)
 }
+
+type EventRepository interface {
+	SendNewPostEvent(ctx context.Context, event model.Event) error
+}
