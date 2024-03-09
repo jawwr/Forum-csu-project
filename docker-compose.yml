@@ -8,9 +8,8 @@ services:
   app-db:
     image: postgres
     container_name: forum-db
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=1234
+    env_file:
+      config.env
     restart: on-failure
     networks:
       - forum_network
@@ -49,10 +48,10 @@ services:
       context: ./event-service
       dockerfile: Dockerfile
     container_name: forum-event-service
+    env_file:
+      config.env
     ports:
       - "8081:8080"
-    links:
-      - app-db
     depends_on:
       - app-db
     networks:
@@ -64,10 +63,10 @@ services:
       context: ./post-service
       dockerfile: Dockerfile
     container_name: forum-post-service
+    env_file:
+      config.env
     ports:
       - "8082:8080"
-    links:
-      - app-db
     depends_on:
       - app-db
     networks:
@@ -79,10 +78,10 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
     container_name: forum-user-service
+    env_file:
+      config.env
     ports:
       - "8083:8080"
-    links:
-      - app-db
     depends_on:
       - app-db
     networks:

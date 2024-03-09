@@ -8,9 +8,9 @@ import (
 )
 
 func InitRoutes(serviceManager service.Manager) *gin.Engine {
-	engine := gin.New()
+	router := gin.New()
 
-	router := engine.Group("", configureCORS())
+	router.Use(configureCORS())
 
 	auth := router.Group("/api/auth")
 	{
@@ -28,7 +28,7 @@ func InitRoutes(serviceManager service.Manager) *gin.Engine {
 
 		api.GET("/:id/subscribers", handler.GetAllSubscribers(serviceManager.SubscriberService))
 	}
-	return engine
+	return router
 }
 
 func configureCORS() gin.HandlerFunc {
