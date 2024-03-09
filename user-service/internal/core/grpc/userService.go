@@ -21,6 +21,23 @@ func NewUserService(manager serviceManager.Manager) pb.UserServiceServer {
 	}
 }
 
+func (s _userServiceImpl) GetUserById(stream pb.UserService_GetUserByIdServer) error {
+	ctx := stream.Context()
+	for {
+		userRequest, err := stream.Recv()
+		if err != nil {
+			return err
+		}
+		user, err := s.userService.GetUserById(ctx, int(userRequest.Id))
+		if err != nil {
+			return err
+		}
+		if err := stream.Send(mapper.ToPbUser(user)); err != nil {
+			return err
+		}
+	}
+}
+
 func (s _userServiceImpl) GetUserByToken(ctx context.Context, token *pb.Token) (*pb.User, error) {
 	savedToken, err := s.tokenService.GetToken(ctx, token.Token)
 	if err != nil {
