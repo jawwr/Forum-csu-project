@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"io"
+	"log"
 	"user-service/internal/core/interface/service"
 	"user-service/internal/core/mapper"
 	serviceManager "user-service/internal/core/service"
@@ -19,6 +21,30 @@ func NewUserService(manager serviceManager.Manager) pb.UserServiceServer {
 		userService:  manager.UserService,
 		tokenService: manager.TokenService,
 	}
+}
+
+func (s _userServiceImpl) GetUserById(stream pb.UserService_GetUserByIdServer) error {
+	ctx := stream.Context()
+	for {
+		userRequest, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Println(err.Error())
+			return err
+		}
+		user, err := s.userService.GetUserById(ctx, int(userRequest.Id))
+		if err != nil {
+			log.Println(err.Error())
+			return err
+		}
+		if err := stream.Send(mapper.ToPbUser(user)); err != nil {
+			log.Println(err.Error())
+			return err
+		}
+	}
+	return nil
 }
 
 func (s _userServiceImpl) GetUserByToken(ctx context.Context, token *pb.Token) (*pb.User, error) {
