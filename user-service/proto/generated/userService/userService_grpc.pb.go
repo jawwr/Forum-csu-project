@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	GetUserByToken(ctx context.Context, in *Token, opts ...grpc.CallOption) (*User, error)
+	GetUserById(ctx context.Context, opts ...grpc.CallOption) (UserService_GetUserByIdClient, error)
 }
 
 type userServiceClient struct {
@@ -42,11 +43,43 @@ func (c *userServiceClient) GetUserByToken(ctx context.Context, in *Token, opts 
 	return out, nil
 }
 
+func (c *userServiceClient) GetUserById(ctx context.Context, opts ...grpc.CallOption) (UserService_GetUserByIdClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/userService.UserService/GetUserById", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userServiceGetUserByIdClient{stream}
+	return x, nil
+}
+
+type UserService_GetUserByIdClient interface {
+	Send(*UserRequest) error
+	Recv() (*User, error)
+	grpc.ClientStream
+}
+
+type userServiceGetUserByIdClient struct {
+	grpc.ClientStream
+}
+
+func (x *userServiceGetUserByIdClient) Send(m *UserRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *userServiceGetUserByIdClient) Recv() (*User, error) {
+	m := new(User)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
 	GetUserByToken(context.Context, *Token) (*User, error)
+	GetUserById(UserService_GetUserByIdServer) error
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -56,6 +89,9 @@ type UnimplementedUserServiceServer struct {
 
 func (UnimplementedUserServiceServer) GetUserByToken(context.Context, *Token) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByToken not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserById(UserService_GetUserByIdServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetUserById not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -88,6 +124,32 @@ func _UserService_GetUserByToken_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUserById_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UserServiceServer).GetUserById(&userServiceGetUserByIdServer{stream})
+}
+
+type UserService_GetUserByIdServer interface {
+	Send(*User) error
+	Recv() (*UserRequest, error)
+	grpc.ServerStream
+}
+
+type userServiceGetUserByIdServer struct {
+	grpc.ServerStream
+}
+
+func (x *userServiceGetUserByIdServer) Send(m *User) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *userServiceGetUserByIdServer) Recv() (*UserRequest, error) {
+	m := new(UserRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +162,13 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_GetUserByToken_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetUserById",
+			Handler:       _UserService_GetUserById_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "userService.proto",
 }
