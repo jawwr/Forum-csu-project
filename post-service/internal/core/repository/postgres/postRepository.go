@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"post-service/internal/core/interface/repository"
+	"post-service/internal/core/mapper"
 	"post-service/internal/core/model"
 	"post-service/internal/core/repository/dbModel"
 	"post-service/internal/lib/db"
@@ -41,7 +42,7 @@ func (postRepository _postRepository) GetPost(ctx context.Context, postId int) (
 		return model.Post{}, fmt.Errorf("get post error: %s", err.Error())
 	}
 
-	return model.Post(post), nil
+	return *mapper.FromPostDb(&post), nil
 }
 
 func (postRepository _postRepository) GetAllPosts(ctx context.Context) ([]model.Post, error) {
@@ -71,12 +72,7 @@ func (postRepository _postRepository) GetAllPosts(ctx context.Context) ([]model.
 	var result []model.Post
 
 	for _, post := range posts {
-		result = append(result, model.Post{
-			Id:     post.Id,
-			Title:  post.Title,
-			Text:   post.Text,
-			UserId: post.UserId,
-		})
+		result = append(result, *mapper.FromPostDb(&post))
 	}
 
 	return result, nil

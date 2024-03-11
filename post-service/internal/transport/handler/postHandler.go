@@ -4,21 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"post-service/internal/core/interface/service"
+	"post-service/internal/core/mapper"
 	"post-service/internal/core/model"
 	"strconv"
 )
-
-type handlerPost struct {
-	Id    int        `json:"id"`
-	Title string     `json:"title"`
-	Text  string     `json:"text"`
-	User  handleUser `json:"user"`
-}
-
-type handleUser struct {
-	Id    int    `json:"id"`
-	Login string `json:"login"`
-}
 
 func CreatePost(service service.PostService) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -78,15 +67,7 @@ func GetPost(postService service.PostService, userService service.UserService) g
 			return
 		}
 
-		c.JSON(http.StatusOK, handlerPost{
-			Id:    post.Id,
-			Title: post.Title,
-			Text:  post.Text,
-			User: handleUser{
-				Id:    user.Id,
-				Login: user.Login,
-			},
-		})
+		c.JSON(http.StatusOK, *mapper.ToHandlerPost(&post, &user))
 	}
 }
 
@@ -99,7 +80,7 @@ func GetAllPosts(postService service.PostService, userService service.UserServic
 			return
 		}
 
-		var result []handlerPost
+		var result []model.HandlePost
 		for _, post := range posts {
 			user, err := userService.GetUserById(c.Request.Context(), post.UserId)
 
@@ -107,15 +88,7 @@ func GetAllPosts(postService service.PostService, userService service.UserServic
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 				return
 			}
-			result = append(result, handlerPost{
-				Id:    post.Id,
-				Title: post.Title,
-				Text:  post.Text,
-				User: handleUser{
-					Id:    user.Id,
-					Login: user.Login,
-				},
-			})
+			result = append(result, *mapper.ToHandlerPost(&post, &user))
 		}
 		c.JSON(http.StatusOK, result)
 	}
