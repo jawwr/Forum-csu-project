@@ -30,8 +30,9 @@ func CreatePost(service service.PostService) gin.HandlerFunc {
 
 			return
 		}
-		ctxUser, exist := c.Get("user")
-		if !exist {
+
+		ctxUser, exists := c.Get("user")
+		if !exists {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "wrong user"})
 			return
 		}
@@ -50,7 +51,7 @@ func CreatePost(service service.PostService) gin.HandlerFunc {
 	}
 }
 
-func GetPost(service service.PostService) gin.HandlerFunc {
+func GetPost(postService service.PostService, userService service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
@@ -63,12 +64,18 @@ func GetPost(service service.PostService) gin.HandlerFunc {
 			return
 		}
 
-		post, err := service.GetPost(c.Request.Context(), numberId)
+		post, err := postService.GetPost(c.Request.Context(), numberId)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
 			return
+		}
 
+		user, err := userService.GetUserById(c.Request.Context(), post.UserId)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
+			return
 		}
 
 		c.JSON(http.StatusOK, handlerPost{
@@ -76,16 +83,16 @@ func GetPost(service service.PostService) gin.HandlerFunc {
 			Title: post.Title,
 			Text:  post.Text,
 			User: handleUser{
-				Id:    post.UserId,
-				Login: "",
+				Id:    user.Id,
+				Login: user.Login,
 			},
 		})
 	}
 }
 
-func GetAllPosts(service service.PostService) gin.HandlerFunc {
+func GetAllPosts(postService service.PostService, userService service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		posts, err := service.GetAllPosts(c.Request.Context())
+		posts, err := postService.GetAllPosts(c.Request.Context())
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
@@ -94,13 +101,19 @@ func GetAllPosts(service service.PostService) gin.HandlerFunc {
 
 		var result []handlerPost
 		for _, post := range posts {
+			user, err := userService.GetUserById(c.Request.Context(), post.UserId)
+
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err})
+				return
+			}
 			result = append(result, handlerPost{
 				Id:    post.Id,
 				Title: post.Title,
 				Text:  post.Text,
 				User: handleUser{
-					Id:    post.UserId,
-					Login: "",
+					Id:    user.Id,
+					Login: user.Login,
 				},
 			})
 		}

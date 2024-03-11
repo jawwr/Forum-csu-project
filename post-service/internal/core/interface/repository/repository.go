@@ -12,5 +12,5 @@ type PostRepository interface {
 }
 
 type EventRepository interface {
-	SendNewPostEvent(ctx context.Context, event model.Event) error
+	SendNewPostEvent(ctx context.Context, event model.PostEvent) error
 }

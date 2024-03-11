@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"log/slog"
 	"post-service/internal/core/interface/repository"
 	"post-service/internal/core/interface/service"
@@ -12,8 +11,9 @@ import (
 )
 
 type _postService struct {
-	repo  repository.PostRepository
-	kafka repository.EventRepository
+	repo              repository.PostRepository
+	kafka             repository.EventRepository
+	subscriberService service.SubscriberService
 }
 
 func NewPostService(repo repository.PostRepository, kafka repository.EventRepository) service.PostService {
@@ -28,17 +28,20 @@ func (postService _postService) CreatePost(ctx context.Context, post model.Post)
 		return 0, errors.New("create post error")
 	}
 
-	requestId, err := uuid.GenerateUUID()
-
+	subscribers, err := postService.subscriberService.GetAllUserSubscribers(ctx, post.UserId)
 	if err != nil {
-		slog.Error("generate uuid error: ", err.Error())
-		return id, nil
+		return 0, err
 	}
 
-	event := model.Event{
-		Id:    requestId,
-		Key:   requestId,
-		Value: id,
+	var subscribersIds []int
+
+	for _, subscriber := range subscribers {
+		subscribersIds = append(subscribersIds, subscriber.Id)
+	}
+	event := model.PostEvent{
+		Title:         "Новый пост: " + post.Title,
+		PostId:        post.Id,
+		SubscriberIds: subscribersIds,
 	}
 
 	err = postService.kafka.SendNewPostEvent(ctx, event)

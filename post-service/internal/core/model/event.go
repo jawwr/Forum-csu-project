@@ -1,7 +1,7 @@
 package model
 
-type Event struct {
-	Id    string
-	Key   string
-	Value int
+type PostEvent struct {
+	Title         string
+	PostId        int
+	SubscriberIds []int
 }

@@ -13,4 +13,9 @@ type PostService interface {
 
 type UserService interface {
 	GetUserByToken(ctx context.Context, token string) (model.User, error)
+	GetUserById(ctx context.Context, userId int) (model.User, error)
+}
+
+type SubscriberService interface {
+	GetAllUserSubscribers(ctx context.Context, userId int) ([]model.User, error)
 }

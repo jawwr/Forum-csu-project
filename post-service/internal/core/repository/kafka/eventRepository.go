@@ -26,7 +26,7 @@ func NewEventRepo(host string) repository.EventRepository {
 
 }
 
-func (repo _eventRepository) SendNewPostEvent(ctx context.Context, event model.Event) error {
+func (repo _eventRepository) SendNewPostEvent(ctx context.Context, event model.PostEvent) error {
 	bytes, err := json.Marshal(event)
 
 	if err != nil {
@@ -36,7 +36,6 @@ func (repo _eventRepository) SendNewPostEvent(ctx context.Context, event model.E
 	_, err = repo.conn.WriteMessages(
 		kafka.Message{
 			Topic: "post",
-			Key:   []byte(event.Id),
 			Value: bytes,
 		})
 
