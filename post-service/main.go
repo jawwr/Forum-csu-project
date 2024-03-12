@@ -11,6 +11,7 @@ import (
 	"post-service/internal/core/service"
 	"post-service/internal/lib/db"
 	"post-service/internal/transport/router"
+	"post-service/proto/generated/subscriberService"
 	pb "post-service/proto/generated/userService"
 	"time"
 )
@@ -40,7 +41,9 @@ func main() {
 	manager := repository.NewRepositoryManager(database,
 		os.Getenv("KAFKA_HOST")+":"+os.Getenv("KAFKA_PORT"))
 
-	postServ := service.NewPostService(manager.PostRepository, manager.EventRepository)
+	subscriberClient := subscriberService.NewSubscriberServiceClient(conn)
+	subscriberService1 := service.NewSubscriberService(subscriberClient)
+	postServ := service.NewPostService(manager.PostRepository, manager.EventRepository, subscriberService1)
 	grpcService := service.NewUserGrpcService(userServiceClient)
 
 	routes := router.InitRoutes(postServ, grpcService)

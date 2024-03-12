@@ -6,6 +6,7 @@ import (
 	"event-service/internal/core/interface/service"
 	"event-service/internal/core/model"
 	"event-service/internal/core/repository/dbModel"
+	"fmt"
 )
 
 type _eventService struct {
@@ -40,6 +41,7 @@ func (eventService _eventService) SaveEvent(ctx context.Context, event model.Pos
 		}
 
 		if err := eventService.repo.SaveEvent(ctx, dbEvent); err != nil {
+			fmt.Println(err.Error())
 			return err
 		}
 

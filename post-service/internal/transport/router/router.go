@@ -12,9 +12,9 @@ func InitRoutes(postService service.PostService, userService service.UserService
 
 	router.Use(configureCORS())
 
-	api := router.Group("/api/post")
+	api := router.Group("/api/post", middleware.AuthMiddleware(userService))
 	{
-		api.POST("", handler.CreatePost(postService), middleware.AuthMiddleware(userService))
+		api.POST("", handler.CreatePost(postService))
 		api.GET("/:id", handler.GetPost(postService, userService))
 		api.GET("", handler.GetAllPosts(postService, userService))
 	}

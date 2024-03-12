@@ -16,8 +16,8 @@ type _postService struct {
 	subscriberService service.SubscriberService
 }
 
-func NewPostService(repo repository.PostRepository, kafka repository.EventRepository) service.PostService {
-	return _postService{repo: repo, kafka: kafka}
+func NewPostService(repo repository.PostRepository, kafka repository.EventRepository, subscriberService service.SubscriberService) service.PostService {
+	return _postService{repo: repo, kafka: kafka, subscriberService: subscriberService}
 }
 
 func (postService _postService) CreatePost(ctx context.Context, post model.Post) (int, error) {

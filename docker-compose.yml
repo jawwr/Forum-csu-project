@@ -86,6 +86,7 @@ services:
       config.env
     ports:
       - "8083:8080"
+      - "9090:9090"
     depends_on:
       - app-db
     networks:
