@@ -16,7 +16,9 @@ import (
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(os.Getenv("USER_SERVICE_GRPC_HOST")+
+		":"+os.Getenv("USER_SERVICE_GRPC_PORT"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
