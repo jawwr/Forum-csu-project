@@ -1,22 +1,20 @@
 package router
 
 import (
+	"event-service/internal/core/interface/service"
+	"event-service/internal/transport/handler"
+	"event-service/internal/transport/middleware"
 	"github.com/gin-gonic/gin"
-	"post-service/internal/core/interface/service"
-	"post-service/internal/transport/handler"
-	"post-service/internal/transport/middleware"
 )
 
-func InitRoutes(postService service.PostService, userService service.UserService) *gin.Engine {
+func InitRoutes(eventService service.EventService, userService service.UserService) *gin.Engine {
 	router := gin.New()
 
 	router.Use(configureCORS())
 
-	api := router.Group("/api/post", middleware.AuthMiddleware(userService))
+	api := router.Group("/api/event", middleware.AuthMiddleware(userService))
 	{
-		api.POST("", handler.CreatePost(postService))
-		api.GET("/:id", handler.GetPost(postService, userService))
-		api.GET("", handler.GetAllPosts(postService, userService))
+		api.GET("", handler.GetEvents(eventService))
 	}
 
 	return router
